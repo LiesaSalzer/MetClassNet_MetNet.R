@@ -621,7 +621,7 @@ combine <- function(structural, statistical, threshold = 1, model = "combined", 
 }
 
 
-
+#' Export adjacency matrix to gml
 exportNet2gml <- function (x, from, ...) {
   if ("structural" %in% from) {
     
