@@ -207,7 +207,7 @@ statistical <- function(x, model, p = FALSE, ...) {
     #diag(pearson) <- NaN
     diag(pearson[[1]]) <- NaN
     diag(pearson[[2]]) <- NaN
-    l <- addToList_p(l, "pearson", pearson)
+    l <- addToList(l, "pearson", pearson)
     print("pearson finished.")
   }
   
@@ -218,7 +218,7 @@ statistical <- function(x, model, p = FALSE, ...) {
     #diag(spearman) <- NaN
     diag(spearman[[1]]) <- NaN
     diag(spearman[[2]]) <- NaN
-    l <- addToList_p(l, "spearman", spearman)
+    l <- addToList(l, "spearman", spearman)
     print("spearman finished.")
   }
   
@@ -249,6 +249,7 @@ correlation_p <- function(x, type = "pearson", use = "pairwise.complete.obs") {
   
   return(cor_list)
 }
+#'Changes to MetNet: Not tested anymore if object is a matrix (since object is a list)
 addToList <- function(l, name, object) {
   
   ## test validity of objects
@@ -260,9 +261,10 @@ addToList <- function(l, name, object) {
     stop("name is not a character")
   }
   
-  if (!is.matrix(object)) {
-    stop("object is not a matrix")
-  }
+  ##left out since object could also be a list
+  # if (!is.matrix(object)) {
+  #   stop("object is not a matrix")
+  # }
   
   ## add object to l
   new_index <- length(l) + 1
@@ -273,27 +275,6 @@ addToList <- function(l, name, object) {
   
   return(l)
 }#nothing changed
-#'Not tested if object is a matrix (since object is a list) --> maybe same function can be used?
-addToList_p <- function(l, name, object) {
-  
-  ## test validity of objects
-  if (!is.list(l)) {
-    stop("l is not a list")
-  }
-  
-  if (!is.character(name)) {
-    stop("name is not a character")
-  }
-  
-  ## add object to l
-  new_index <- length(l) + 1
-  l[[new_index]] <- object
-  
-  ## assign the name to the newly added entry
-  names(l)[new_index] <- name
-  
-  return(l)
-}
 threeDotsCall <- function(fun, ...) {
   
   formal_args <- formalArgs(fun)
@@ -621,7 +602,15 @@ combine <- function(structural, statistical, threshold = 1, model = "combined", 
 }
 
 
-#' Export adjacency matrix to gml
+#' exportNet2gml is a function that exports adjacency matrices to gml using igraph
+#' Needs following attributes:
+#' x: adjacency matrix that needs to be exported
+#' from: originated from wich function, possible values are 
+#' - "structural" Produces a gml file with edge attributes containing mass difference values, data saved as "structural_type.gml"
+#' - "statistical+p" produces a gml file with edge attributes containing correlation values and p-values, saved as "statistical.'model'.gml"
+#' (TO DO: ADD "statistical")
+#' - "combine" produces a gml file with edge attributes containing correlation and p-values for pearson/ spearman correlations, 
+#' saved as "combined.gml"
 exportNet2gml <- function (x, from, ...) {
   if ("structural" %in% from) {
     
@@ -681,9 +670,11 @@ exportNet2gml <- function (x, from, ...) {
   }
 }
 
+#' adjacency_list is a function that creates a list of an adjacency matrix x
+#' from: originated from which function, possiblie attributes are "structural", "statistical", "combine"
 adjacency_list <- function(x, from){
   
-  if (!(all(from %in% c("structural", "statistical", "threshold", "combine"))))
+  if (!(all(from %in% c("structural", "statistical", "combine"))))
     stop("'from' not implemented in adjacency_list")
   
   if ("structural" %in% from) {
@@ -735,6 +726,8 @@ return(listed)
   
 }
 
+#' sum_mass summarises the adjacency list containing mass difference values, 
+#' i.e. either adjacency list from structural or combine may be used
 sum_mass <- function(adjacency_list){
   
   if("mass difference" %in% names(adjacency_list)){
